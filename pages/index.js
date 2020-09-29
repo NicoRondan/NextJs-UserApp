@@ -2,13 +2,30 @@ import React, { Fragment, useState } from "react";
 import Head from "next/head";
 import Nav from "../components/nav";
 import { addUser } from "../services/user";
+import { useSelector, useDispatch } from 'react-redux';
+
+const useHome = () => {
+  const loading = useSelector((state) => state.loading);
+  const dispatch = useDispatch();
+  const isLoading = () =>
+    dispatch({
+      type: 'IS_LOADING',
+    })
+  const notLoading = () =>
+    dispatch({
+      type: 'NOT_LOADING',
+    })
+  return { loading, isLoading, notLoading }
+}
+
 
 function Home() {
   const [userName, setUserName] = useState("");
   const [userLastName, setUserLastName] = useState("");
   const [response, setResponse] = useState(null);
   const [msg, setMsg] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  const { loading, isLoading, notLoading } = useHome();
 
   const onChangeUserName = (e) => {
     setUserName(e.target.value);
@@ -21,16 +38,16 @@ function Home() {
   const onSubmit = (e) => {
     e.preventDefault();
     const user = { userName, userLastName };
-    setLoading(true);
+    isLoading();
 
     addUser(user)
       .then((res) => {
-        setLoading(false);
+        notLoading();
         setResponse(true);
         setMsg("User Created!");
       })
       .catch((err) => {
-        setLoading(false);
+        notLoading();
         setResponse(false);
         setMsg("Server error!");
       });
