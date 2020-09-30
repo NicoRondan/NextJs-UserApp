@@ -2,30 +2,23 @@ import React, { Fragment, useState } from "react";
 import Head from "next/head";
 import Nav from "../components/nav";
 import { addUser } from "../services/user";
-import { useSelector, useDispatch } from 'react-redux';
-
-const useHome = () => {
-  const loading = useSelector((state) => state.loading);
-  const dispatch = useDispatch();
-  const isLoading = () =>
-    dispatch({
-      type: 'IS_LOADING',
-    })
-  const notLoading = () =>
-    dispatch({
-      type: 'NOT_LOADING',
-    })
-  return { loading, isLoading, notLoading }
-}
-
+import { useUtils } from "../redux/dispatcher/dispatch";
 
 function Home() {
   const [userName, setUserName] = useState("");
   const [userLastName, setUserLastName] = useState("");
-  const [response, setResponse] = useState(null);
-  const [msg, setMsg] = useState("");
 
-  const { loading, isLoading, notLoading } = useHome();
+  const {
+    loading,
+    isLoading,
+    notLoading,
+    response,
+    isResponse,
+    notResponse,
+    msg,
+    successMsg,
+    errorMsg,
+  } = useUtils();
 
   const onChangeUserName = (e) => {
     setUserName(e.target.value);
@@ -43,13 +36,13 @@ function Home() {
     addUser(user)
       .then((res) => {
         notLoading();
-        setResponse(true);
-        setMsg("User Created!");
+        isResponse();
+        successMsg("User Created!");
       })
       .catch((err) => {
         notLoading();
-        setResponse(false);
-        setMsg("Server error!");
+        notResponse();
+        errorMsg("Server error!");
       });
   };
 
@@ -80,12 +73,14 @@ function Home() {
                 ></div>
               </div>
             ) : response !== null ? (
-              <div
-                className={`alert alert-${response ? "success" : "danger"}`}
-                role="alert"
-              >
-                {msg}
-              </div>
+              msg !== "" ? (
+                <div
+                  className={`alert alert-${response ? "success" : "danger"}`}
+                  role="alert"
+                >
+                  {msg}
+                </div>
+              ) : null
             ) : null}
             <h3 className="text-center">Create A New User</h3>
             <form onSubmit={onSubmit}>

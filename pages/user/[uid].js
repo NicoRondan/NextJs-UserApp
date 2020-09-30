@@ -2,14 +2,27 @@ import React, { Fragment, useState } from "react";
 import Nav from "../../components/nav";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { deleteUserById, getUserById, updateUserById } from "../../services/user";
+import {
+  deleteUserById,
+  getUserById,
+  updateUserById,
+} from "../../services/user";
+import { useUtils } from "../../redux/dispatcher/dispatch";
 
 const UserPage = (props) => {
   const [firstName, setFirstName] = useState(props.firstName);
   const [lastName, setLastName] = useState(props.lastName);
-  const [response, setResponse] = useState(null);
-  const [msg, setMsg] = useState("");
-  const [loading, setLoading] = useState(false);
+  const {
+    loading,
+    isLoading,
+    notLoading,
+    response,
+    isResponse,
+    notResponse,
+    msg,
+    successMsg,
+    errorMsg,
+  } = useUtils();
 
   const { uid } = props.query;
   const router = useRouter();
@@ -17,32 +30,38 @@ const UserPage = (props) => {
   const onSubmit = async (e) => {
     e.preventDefault();
     const user = { firstName, lastName };
-    setLoading(true);
+    isLoading();
 
     updateUserById(uid, user)
       .then((res) => {
-        setLoading(false);
-        setResponse(true);
-        setMsg("User Updated!");
+        notLoading();
+        isResponse();
+        successMsg("User Updated!");
       })
       .catch((err) => {
-        setLoading(false);
-        setResponse(false);
-        setMsg("Server Error!");
+        notLoading();
+        notResponse();
+        errorMsg("Server error!");
       });
   };
 
   const deleteUser = () => {
-    setLoading(true);
+    isLoading();
 
     deleteUserById(uid)
       .then((res) => {
-        router.push("/users");
+        notLoading();
+        isResponse();
+        successMsg("User Deleted!");
+        setTimeout(() => {
+          router.push("/users");
+          successMsg("");
+        }, 2000);
       })
       .catch((err) => {
-        setLoading(false);
-        setResponse(false);
-        setMsg("Server Error!");
+        notLoading();
+        notResponse();
+        errorMsg("Server error!");
       });
   };
 
@@ -72,12 +91,14 @@ const UserPage = (props) => {
               ></div>
             </div>
           ) : response !== null ? (
-            <div
-              className={`alert alert-${response ? "success" : "danger"}`}
-              role="alert"
-            >
-              {msg}
-            </div>
+            msg !== "" ? (
+              <div
+                className={`alert alert-${response ? "success" : "danger"}`}
+                role="alert"
+              >
+                {msg}
+              </div>
+            ) : null
           ) : null}
           <h4 className="text-center">User Information </h4>
           <div className="form-group">
